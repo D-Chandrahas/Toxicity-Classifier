@@ -25,3 +25,4 @@ model.to("cuda")
 print("\x1b[3J\x1b[2J\x1b[1;1H", end="")
 while(text := input("\x1b[4mEnter text\x1b[0m: ")):
     print("\x1b[30;101mHate speech detected" if model(text) else "\x1b[30;102mNo hate speech detected", end="\x1b[0m\n\n")
+print("\x1b[3J\x1b[2J\x1b[1;1H", end="")

@@ -1,28 +1,65 @@
 print("\nLoading Modules...")
-# from torch.utils.data import DataLoader
 from ToxicityModels import ToxicityClassifier, ToxicityDataset
+from train import load_from_dir, BATCH_SIZE
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 
+LABELS = ToxicityDataset.labels
 
-# test_data = ToxicityDataset("./data/test_data.csv")
-# hate_check = ToxicityDataset("./data/hate_check.csv")
+CLSCR = lambda : print("\x1b[2J\x1b[3J\x1b[1;1H", end="")
+RESET = "\x1b[0m"
+RESET_TERM = lambda : print(RESET, end="")
+U_LINE = "\x1b[4m"
+HIGHLIGHT = "\x1b[7m"
+RED = "\x1b[30;101m"
+GREEN = "\x1b[30;102m"
+U_LINE_TEXT = lambda s : U_LINE + s + RESET
+HIGHLIGHT_TEXT = lambda s : HIGHLIGHT + s + RESET
+RED_TEXT = lambda s : RED + s + RESET
+GREEN_TEXT = lambda s : GREEN + s + RESET
+
 
 # note: max batch size for rtx 3050 mobile(4gb vram) is 4
 # note: max batch size for tesla T4(16gb vram) is 16
-# test_dataloader = DataLoader(test_data, batch_size=4)
-# hate_check_dataloader = DataLoader(hate_check, batch_size=4)
 
-PATH = "D:/Misc/model_85.pth"
-print("\nLoading model from", PATH)
-model = ToxicityClassifier()
-model.load(PATH)
-model.to("cuda")
+# test_data = load_from_dir("./test", BATCH_SIZE)
+# foreign_data = load_from_dir("./foreign_data", BATCH_SIZE)
 
-# print(model.evaluate(test_dataloader))
-# print(model.evaluate(hate_check_dataloader))
+PATH = "D:/Misc/model_2_130059.ckpt"
 
-print("\x1b[3J\x1b[2J\x1b[1;1H", end="")
-while(text := input("\x1b[4mEnter text\x1b[0m: ")):
-    print("\x1b[30;101mHate speech detected" if model(text) else "\x1b[30;102mNo hate speech detected", end="\x1b[0m\n\n")
-print("\x1b[3J\x1b[2J\x1b[1;1H", end="")
+if __name__ == "__main__":
+    print("\nLoading model from", PATH)
+    model = ToxicityClassifier()
+    model.load(PATH)
+    model.to("cuda")
+
+    # print(model.evaluate(test_data))
+    # print(model.evaluate(foreign_data))
+
+    CLSCR()
+    while(text := input(U_LINE_TEXT("Enter text") + ": ")):
+
+        pred_labels = model(text)
+
+        if pred_labels[0]:
+            if pred_labels[1]:
+                print(RED_TEXT("Hate speech and toxicity detected"))
+            else:
+                print(RED_TEXT("Hate speech detected"))
+        else:
+            if pred_labels[1]:
+                print(RED_TEXT("Toxicity detected"))
+            else:
+                print(GREEN_TEXT("No hate speech or toxicity detected"))
+
+        if (pred_labels[0] or pred_labels[1]) and sum(pred_labels[2:]):
+            print(HIGHLIGHT_TEXT("Possible subcategories:"), end=" ")
+            for pred_label, label in zip(pred_labels[2:], LABELS[2:]):
+                if pred_label:
+                    print(label, end=", ")
+            print("\b\b  ")
+
+        print()
+
+    RESET_TERM()
+    CLSCR()

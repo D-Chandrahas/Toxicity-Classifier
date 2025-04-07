@@ -2,7 +2,7 @@ from os import makedirs
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-DATA_PATH = "./data1"
+DATA_PATH = "./data2"
 makedirs(TRAIN_PATH := "./train", exist_ok=True)
 makedirs(VALID_PATH := "./valid", exist_ok=True)
 makedirs(TEST_PATH := "./test", exist_ok=True)
